@@ -62,6 +62,7 @@ public class User implements Runnable{
 	public String getName() {
 		return this.nickname;
 	}
+	
 	/**
 	 * Closes the socket and sets the status to not connected
 	 */
