@@ -20,7 +20,7 @@ public class Packet {
 	public Packet(Header header, byte[] data) {
 		this.header=header;
 		if(data == null) {
-			data = null;
+			this.data = null;
 		}
 		else {
 			this.data = Arrays.copyOf(data, data.length);

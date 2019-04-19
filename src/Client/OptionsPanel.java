@@ -23,13 +23,14 @@ public class OptionsPanel extends JPanel implements ActionListener{
 	private JTextField ipField, nicknameField;
 	private JLabel ipLabel, nickLabel;
 	private boolean isConnected;
-	private UserInterface ui;
+	private UserInterface parent;
 	
 	/**
 	 * Initializes OptionsPanel
+	 * @param parent Parent UI this panel belongs to
 	 */
-	public OptionsPanel(UserInterface ui){
-		this.ui = ui;
+	public OptionsPanel(UserInterface parent){
+		this.parent = parent;
 		this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		this.isConnected = false;
 		initComponents();
@@ -112,9 +113,9 @@ public class OptionsPanel extends JPanel implements ActionListener{
 			if(nick == null) {
 				return;
 			}
-			this.ui.connectToServer(this.ipField.getText(), nick);
+			parent.connectToServer(this.ipField.getText(), nick);
 		} else if(e.getSource().equals(this.disconnectButton)) {
-			this.ui.disconnectServer();
+		    parent.disconnectServer();
 		}
 	}
 }

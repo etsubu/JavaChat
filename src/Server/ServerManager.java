@@ -1,5 +1,7 @@
 package Server;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -36,21 +38,6 @@ public class ServerManager {
 	}
 	
 	/**
-	 * Checks the validity of the given name. A name can only contain letters and digits
-	 * @param name The name to check
-	 * @return is the name allowed
-	 */
-	public boolean checkValidity(String name) {
-		for(int i = 0;i < name.length(); i++) {
-			char c = name.charAt(i);
-			if(Character.isAlphabetic(c) == false && Character.isDigit(c) == false) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	/**
 	 * Checks if the given nickname is not already used
 	 * @param name the nickname to check
 	 * @return is the nickname available
@@ -74,9 +61,6 @@ public class ServerManager {
 	 * @return Was the channel created
 	 */
 	public boolean createChannel(String name){
-		if(!checkValidity(name)) {
-			return false;
-		}
 		String loweredName = name.toLowerCase();
 		this.channelLock.lock();
 		for(Channel c:this.channels) {
@@ -84,17 +68,24 @@ public class ServerManager {
 				return false;
 			}
 		}
-		this.channels.add(new Channel(name, this.channelIndex, this));
-		this.channelIndex++;
-		this.channelLock.unlock();
-		this.userLock.lock();
-		for(User u:this.users) {
-			try {
-				u.sendChannelList();
-			} catch (Exception e) {}
-		}
-		this.userLock.unlock();
-		return true;
+		try {
+            this.channels.add(new Channel(name, this.channelIndex, this));
+            this.channelIndex++;
+            this.channelLock.unlock();
+            this.userLock.lock();
+            this.users.forEach(x -> {
+                try {
+                    x.sendChannelList();
+                } catch (Exception e1) {
+                    // 
+                } 
+            });
+            this.userLock.unlock();
+            return true;
+        } catch (InvalidChannelNameException e1) {
+            // The channel name was invalid
+            return false;
+        }
 	}
 	
 	/**
@@ -121,7 +112,9 @@ public class ServerManager {
 			for(User u:this.users) {
 				try {
 					u.sendChannelList();
-				} catch (Exception e) {}
+				} catch (Exception e) {
+				    //
+				}
 			}
 			this.userLock.unlock();
 		}
@@ -189,7 +182,7 @@ public class ServerManager {
 	
 	/**
 	 * Removes a user from the list of connected clients
-	 * @param user
+	 * @param user User to be removed
 	 */
 	public void removeUser(User user) {
 		this.userLock.lock();

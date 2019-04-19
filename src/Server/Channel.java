@@ -23,8 +23,12 @@ public class Channel {
 	 * @param channelName name of the channel
 	 * @param channelID the ID of the channel
 	 * @param manager ServerManager which handles clients and channels
+	 * @throws InvalidChannelNameException Thrown if the channelName is invalid
 	 */
-	public Channel(String channelName, int channelID, ServerManager manager) {
+	public Channel(String channelName, int channelID, ServerManager manager) throws InvalidChannelNameException {
+	    if(!Channel.checkChannelNameValidity(channelName)) {
+	        throw new InvalidChannelNameException(channelName);
+	    }
 		this.manager = manager;
 		this.joinedUsers = new ArrayList<>();
 		this.channelName = channelName;
@@ -54,6 +58,21 @@ public class Channel {
 	public List<User> getJoinedUsers() {
 		return this.joinedUsers;
 	}
+	
+	   /**
+     * Checks the validity of the given name. A name can only contain letters and digits
+     * @param name The name to check
+     * @return True if the channel name is valid
+     */
+    public static boolean checkChannelNameValidity(String name) {
+        for(int i = 0;i < name.length(); i++) {
+            char c = name.charAt(i);
+            if(Character.isAlphabetic(c) == false && Character.isDigit(c) == false) {
+                return false;
+            }
+        }
+        return true;
+    }
 	
 	/**
 	 * Adds user to the channel
@@ -117,4 +136,9 @@ public class Channel {
 		Channel channel = (Channel)o;
 		return channel.getID() == this.channelID && channel.getName().equals(this.channelName);
 	}
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }

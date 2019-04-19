@@ -33,6 +33,7 @@ public class Channel {
 	public ChatPanel getChatPanel() {
 		return this.panel;
 	}
+	
 	/**
 	 * Getter for the channel ID
 	 * @return ID of the channel
@@ -79,9 +80,10 @@ public class Channel {
 	public void leaveChannel(){
 		this.clientHandler.sendLeaveChannel(this.channelID);
 	}
+	
 	/**
 	 * Adds the received message to the channel panel
-	 * @param message
+	 * @param message Message that was received
 	 */
 	public void messageReceived(String message) {
 		if(this.panel != null) {

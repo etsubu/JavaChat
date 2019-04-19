@@ -52,7 +52,6 @@ public class UserListPanel extends JPanel{
 	 */
 	public void disable() {
 		this.userListModel.clear();
-		
 	}
 	
 	/**
@@ -64,7 +63,7 @@ public class UserListPanel extends JPanel{
 	
 	/**
 	 * Updates the list of users on the current channel to the panel
-	 * @param userList
+	 * @param userList List of user names to add
 	 */
 	public void updateUserList(String[] userList) {
 		if(userList == null) {

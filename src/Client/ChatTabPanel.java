@@ -58,7 +58,7 @@ public class ChatTabPanel extends JTabbedPane implements ChangeListener{
 	
 	/**
 	 * Adds new chat panel
-	 * @param name Name of the panel
+	 * @param channel Channel to add to the panel
 	 */
 	public void addChatPanel(Channel channel) {
 		ChatPanel chatPanel = channel.getChatPanel();
@@ -80,7 +80,7 @@ public class ChatTabPanel extends JTabbedPane implements ChangeListener{
 	
 	/**
 	 * Removes a chat panel from the screen
-	 * @param channel
+	 * @param channel Channel to remove from panel
 	 */
 	public void removeChatPanel(Channel channel) {
 		for(int i = 0;i < this.chatPanels.size();i++) {

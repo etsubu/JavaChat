@@ -28,7 +28,7 @@ public class Server{
 	
 	/**
 	 * Starts the server and bind on the given port during initialization
-	 * @throws IOException
+	 * @throws IOException When ServerSocket fails to be opened
 	 */
 	public void startServer() throws IOException {
 		if(open) {
@@ -37,10 +37,8 @@ public class Server{
 		this.open = true;
 		this.serverSocket = new ServerSocket(this.port);
 		while(this.open) {
-			Socket client = this.serverSocket.accept();
-			System.out.println("New connection: "+client.getInetAddress().getHostAddress());
-			ProtocolSocket protoSocket = new ProtocolSocket(client);
-			this.manager.addUser(protoSocket);
+		    ProtocolSocket protoSocket = new ProtocolSocket(this.serverSocket.accept());
+		    this.manager.addUser(protoSocket);
 		}
 	}
 	
@@ -51,7 +49,9 @@ public class Server{
 		this.open = false;
 		try {
 			new Socket("127.0.0.1", this.port).close();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		    //
+		}
 		this.manager.closeConnections();
 	}
 }

@@ -54,6 +54,7 @@ public class ChannelPanel extends JPanel implements ActionListener{
 	
 	/**
 	 * Updates the list of available channels
+	 * @param channels List of channels to update
 	 */
 	public void update(String[] channels){
 		this.channelListModel.clear();

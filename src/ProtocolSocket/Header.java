@@ -6,15 +6,15 @@ package ProtocolSocket;
  *
  */
 public class Header {
-	public static final int HEADER_SIZE=Short.BYTES + Short.BYTES;
+	public static final int HEADER_SIZE = Short.BYTES + Short.BYTES;
 	private int packetSize, packetType;
 	
 	/**
 	 * Initializes the header by the raw bytes
-	 * @param bytes
+	 * @param bytes Raw byte buffer to construct the header from
 	 */
 	public Header(byte[] bytes){
-		this.packetSize=((((int)bytes[1]) & 0xFF) << 8) | (bytes[0] & 0xFF);
+		this.packetSize=(((bytes[1]) & 0xFF) << 8) | (bytes[0] & 0xFF);
 		this.packetType=bytes[2];
 	}
 	
@@ -28,7 +28,7 @@ public class Header {
 	
 	/**
 	 * Getter for the type ID of the packet
-	 * @return
+	 * @return Type of the packet as int
 	 */
 	public int getType(){
 		return this.packetType;
@@ -36,9 +36,9 @@ public class Header {
 	
 	/**
 	 * Transforms the header into a byte array
-	 * @param packetSize
-	 * @param packetType
-	 * @return
+	 * @param packetSize Size of the packet
+	 * @param packetType Type of the packet
+	 * @return Packet header as byte array
 	 */
 	public static byte[] toBytes(int packetSize, int packetType){
 		byte[] bytes=new byte[HEADER_SIZE];

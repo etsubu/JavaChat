@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 /**
  * The GUI of the client
@@ -25,7 +26,7 @@ public class UserInterface{
 	public UserInterface() {
 		this.frame = new JFrame();
 		this.frame.setTitle("JavaChat 1.0");
-		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.frame.setLayout(new BorderLayout());
 		initComponents();
 		this.channelManager = new ChannelManager(this.chatTabPanel, this.channnelPanel);

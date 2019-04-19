@@ -1,6 +1,7 @@
 package Client;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import ProtocolSocket.Packet;
 import ProtocolSocket.ProtocolID;
@@ -21,8 +22,9 @@ public class ClientActions {
 	 * @param manager The ClientManager this object belongs to
 	 * @param channelManager The ChannelManager that contains all the connected channels
 	 * @param protoSocket The ProtocolSocket of the client
+	 * @param parent Parent UI
 	 */
-	public ClientActions(ClientManager manager, ChannelManager channelManager, ProtocolSocket protoSocket, UserInterface ui) {
+	public ClientActions(ClientManager manager, ChannelManager channelManager, ProtocolSocket protoSocket, UserInterface parent) {
 		this.manager = manager;
 		this.channelManager = channelManager;
 		this.protoSocket = protoSocket;
@@ -72,25 +74,23 @@ public class ClientActions {
 	 * @param packet Packet to process
 	 */
 	public void processPacket(Packet packet) {
-		try {
-			int type = packet.getHeader().getType();
-			String data = new String(packet.getData(), "UTF-8");
-			if (type == ProtocolID.CHANNEL_BROADCAST.ordinal()) {
-				processBroadcastMessage(data);
-			} else if (type == ProtocolID.LIST_USERS.ordinal()) {
-				processListUsers(data);
-			} else if (type == ProtocolID.JOIN_CHANNEL.ordinal()) {
-				processJoinChannel(data);
-			} else if (type == ProtocolID.CLIENT_JOINED.ordinal()) {
-				processChannelInformation(data);
-			} else if (type == ProtocolID.CLIENT_LEFT.ordinal()) {
-				processChannelInformation(data);
-			} else if (type == ProtocolID.LIST_CHANNELS.ordinal()) {
-				updateChannelList(data);
-			} else if (type == ProtocolID.LEAVE_CHANNEL.ordinal()) {
-				leaveChannel(data);
-			}
-		} catch (UnsupportedEncodingException e) {}
+		int type = packet.getHeader().getType();
+        String data = new String(packet.getData(), StandardCharsets.UTF_8);
+        if (type == ProtocolID.CHANNEL_BROADCAST.ordinal()) {
+        	processBroadcastMessage(data);
+        } else if (type == ProtocolID.LIST_USERS.ordinal()) {
+        	processListUsers(data);
+        } else if (type == ProtocolID.JOIN_CHANNEL.ordinal()) {
+        	processJoinChannel(data);
+        } else if (type == ProtocolID.CLIENT_JOINED.ordinal()) {
+        	processChannelInformation(data);
+        } else if (type == ProtocolID.CLIENT_LEFT.ordinal()) {
+        	processChannelInformation(data);
+        } else if (type == ProtocolID.LIST_CHANNELS.ordinal()) {
+        	updateChannelList(data);
+        } else if (type == ProtocolID.LEAVE_CHANNEL.ordinal()) {
+        	leaveChannel(data);
+        }
 	}
 	
 	private void leaveChannel(String channelIDStr) {
