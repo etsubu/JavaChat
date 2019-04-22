@@ -5,6 +5,6 @@ Simple TCP chat with IRC style channels
 The chat now uses TLSv1.2 for communications. The default trusted root certificates can be extended if the user accepts custom certificate when connecting 
 to a server with self-signed certificate
 
-![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/unknownCert.jpg)
+![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/UnknownCert.JPG)
 The hostname in the certificate needs to match the host address that the client is connecting.
-![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/invalidCert.jpg)
+![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/invalidCert.JPG)
