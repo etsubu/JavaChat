@@ -6,5 +6,7 @@ The chat now uses TLSv1.2 for communications. The default trusted root certifica
 to a server with self-signed certificate
 
 ![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/UnknownCert.JPG)
+
 The hostname in the certificate needs to match the host address that the client is connecting.
+
 ![alt text](https://raw.githubusercontent.com/etsubu/JavaChat/master/invalidCert.JPG)
