@@ -50,28 +50,20 @@ public class UserListPanel extends JPanel{
 	/**
 	 * Disables the components in the panel
 	 */
-	public void disable() {
+	public void deactive() {
 		this.userListModel.clear();
-	}
-	
-	/**
-	 * Enabled the components in the panel
-	 */
-	public void enable(){
-		
 	}
 	
 	/**
 	 * Updates the list of users on the current channel to the panel
-	 * @param userList List of user names to add
+	 * @param users List of user names to add
 	 */
-	public void updateUserList(String[] userList) {
-		if(userList == null) {
-			return;
-		}
-		this.userListModel.clear();
-		for(String s:userList) {
-			this.userListModel.addElement(s);
+	public void updateUserList(String[] users) {
+		if(users != null) {
+		    this.userListModel.clear();
+		    for(String s:users) {
+		        this.userListModel.addElement(s);
+		    }
 		}
 	}
 

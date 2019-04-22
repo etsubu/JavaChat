@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.net.ssl.SSLHandshakeException;
+
+import ProtocolSocket.ProtocolServerSocket;
 import ProtocolSocket.ProtocolSocket;
 
 /**
@@ -35,11 +38,17 @@ public class Server{
 			return;
 		}
 		this.open = true;
-		this.serverSocket = new ServerSocket(this.port);
+		//this.serverSocket = new ServerSocket(this.port);
+		ProtocolServerSocket serverSocket = new ProtocolServerSocket(this.port, true);
 		while(this.open) {
-		    ProtocolSocket protoSocket = new ProtocolSocket(this.serverSocket.accept());
-		    this.manager.addUser(protoSocket);
+		    try {
+		        ProtocolSocket protoSocket = serverSocket.accept();
+		        this.manager.addUser(protoSocket);
+		    } catch(SSLHandshakeException e) {
+		        // SSLhanshake failed. Probably the client does not trust our certificate
+		    }
 		}
+		serverSocket.close();
 	}
 	
 	/**

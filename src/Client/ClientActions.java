@@ -1,6 +1,5 @@
 package Client;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import ProtocolSocket.Packet;
@@ -22,9 +21,8 @@ public class ClientActions {
 	 * @param manager The ClientManager this object belongs to
 	 * @param channelManager The ChannelManager that contains all the connected channels
 	 * @param protoSocket The ProtocolSocket of the client
-	 * @param parent Parent UI
 	 */
-	public ClientActions(ClientManager manager, ChannelManager channelManager, ProtocolSocket protoSocket, UserInterface parent) {
+	public ClientActions(ClientManager manager, ChannelManager channelManager, ProtocolSocket protoSocket) {
 		this.manager = manager;
 		this.channelManager = channelManager;
 		this.protoSocket = protoSocket;
@@ -163,8 +161,8 @@ public class ClientActions {
 		}
 		try{
 			int channelID = Integer.parseInt(message.substring(0, index));
-			message = message.substring(index + 1);
-			String[] userList = message.split("\n");
+			String parsedMessage = message.substring(index + 1);
+			String[] userList = parsedMessage.split("\n");
 			this.channelManager.updateChannelUsers(channelID, userList);
 		} catch(NumberFormatException e) {
 			this.manager.disconnect();
@@ -182,14 +180,14 @@ public class ClientActions {
 		}
 		try {
 			int channelID = Integer.parseInt(data.substring(0, index));
-			data = data.substring(index + 1);
-			index = data.indexOf(":");
-			if(index == -1 || index == data.length() - 1) {
+			String parsedPacket = data.substring(index + 1);
+			index = parsedPacket.indexOf(":");
+			if(index == -1 || index == parsedPacket.length() - 1) {
 				this.manager.disconnect();
 				return;
 			}
-			String sender = data.substring(0, index);
-			String message = data.substring(index + 1);
+			String sender = parsedPacket.substring(0, index);
+			String message = parsedPacket.substring(index + 1);
 			this.channelManager.broadcastMessageReceived(channelID, sender + ": " + message);
 		} catch(NumberFormatException e){
 			this.manager.disconnect();

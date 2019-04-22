@@ -1,10 +1,21 @@
 package ProtocolSocket;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+
+import Client.CertificateStorage;
 
 /**
  * Reads and writes the incoming packets. Uses simple packet header to keep track of the packet sizes and types
@@ -15,30 +26,112 @@ import java.nio.charset.StandardCharsets;
  *
  */
 public class ProtocolSocket {
-	private Socket socket;
-	private InputStream is;
-	private OutputStream os;
-	
-	/**
-	 * Initializes the ProtocolSocket
-	 * @param socket Socket to wrap in
-	 * @throws IOException If there is an error opening streams
-	 */
-	public ProtocolSocket(Socket socket) throws IOException {
-		this.socket = socket;
-		this.is = socket.getInputStream();
-		this.os = socket.getOutputStream();
-	}
-	
-	/**
-	 * Returns the amount of available bytes to read.
-	 * VOLATILE should not be used as the size of a buffer to allocate!
-	 * @return The amount of bytes available
-	 * @throws IOException If socket throws error
-	 */
-	public int available() throws IOException{
-		return this.is.available();
-	}
+    private Socket socket;
+    private SSLContext context;
+    private CertificateStorage tm;
+    
+    /**
+     * Static SSLSocketFactory
+     */
+    public static final SSLSocketFactory sslSocketFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    
+    /**
+     * ProtocolSockets utilize hardcoded list of allowed Cipher suites for TLSv1.2
+     * Reason for hardcoding the list is to ensure that only the most secure cipher suites are utilized.
+     * This can't be guaranted if default cipher suites are used.
+     * The selected cipher suites are from best practices:
+     * https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices.
+     * But those that use RSA and 128 bit AES have been removed from the list. This of course is an overkill but won't hurt anyone
+     * 
+     * Feel free to change these or remove them and stick to defaults if desired.
+     */
+    public static final String[] CIPHER_SUITES = {
+            "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+            "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+            "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"};
+    
+    /**
+     * ProtocolSockets when using encryption only use TLS v1.2 this is to ensure we use the modern algorithms defined in CIPHER_SUITE
+     * and to use the latest available protocol.
+     */
+    public static final String[] ENABLED_PROTOCOLS = {"TLSv1.2"};
+    
+    /**
+     * Initializes the ProtocolSocket with SSL and connects to the given host
+     * @param address Address to connect to
+     * @param port Port to connect to
+     * @param password Keystore password
+     * @throws IOException If there was an error connecting to the host
+     * @throws NoSuchAlgorithmException If the used TLS version was unknown
+     * @throws KeyManagementException If there was an error with initializing SSLContext
+     * @throws KeyStoreException If there was an error loading keystore
+     * @throws SSLPeerUnverifiedException If the server certificate did not match the hostname/ip
+     */
+    public ProtocolSocket(String address, int port, char[] password) throws IOException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, SSLPeerUnverifiedException {
+        this.tm = new CertificateStorage(password);
+        configureContext();
+        SSLSocket ssl = (SSLSocket) context.getSocketFactory().createSocket(address, port);
+        configureSSLSocket(ssl);
+        ssl.startHandshake();
+        this.tm.verifyHostname(ssl.getSession());
+        this.socket = ssl;
+    }
+    
+    /**
+     * Initializes the ProtocolSocket and connects to the given host
+     * @param address Address to connect to
+     * @param port Port to connect to
+     * @param SSL True if SSL is to be enabled, false if no encryption will be used
+     * @param password Keystore password
+     * @throws UnknownHostException If the hostname could not be resolved
+     * @throws IOException If the socket could not be connected
+     * @throws NoSuchAlgorithmException If the used TLS version was unknown
+     * @throws KeyManagementException If there was an error with initializing SSLContext
+     * @throws KeyStoreException If there was an error loading keystore
+     * @throws SSLPeerUnverifiedException If the server certificate did not match the hostname/ip
+     */
+    public ProtocolSocket(String address, int port, boolean SSL, char[] password) throws UnknownHostException, IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, SSLPeerUnverifiedException {
+        if(SSL) {
+            this.tm = new CertificateStorage(password);
+            configureContext();
+            SSLSocket ssl = (SSLSocket) context.getSocketFactory().createSocket(address, port);
+            configureSSLSocket(ssl);
+            ssl.startHandshake();
+            this.tm.verifyHostname(ssl.getSession());
+            this.socket = ssl;
+        } else {
+            this.socket = new Socket(address, port);
+        }
+    }
+    
+    /**
+     * Initializes ProtocolSocket with Socket to wrap in
+     * @param socket Socket to wrap in
+     */
+    public ProtocolSocket(Socket socket) {
+        this.socket = socket;
+    }
+    
+    /**
+     * Configures the SSLSocket to utilize the predefined cipher suites and protocols
+     * @param ssl SSLSocket to configure
+     */
+    public static void configureSSLSocket(SSLSocket ssl) {
+        ssl.setEnabledCipherSuites(CIPHER_SUITES);
+        ssl.setEnabledProtocols(ENABLED_PROTOCOLS);
+        ssl.setNeedClientAuth(false);
+    }
+    
+    /**
+     * Configures SSLContext to use TLSv1.2 and Loading custom storage of trusted certificates
+     * @throws NoSuchAlgorithmException If TLSv1.12 was unknown
+     * @throws KeyManagementException If there was an error with keymanagement
+     * @throws KeyStoreException If there was an error loading Keystore
+     */
+    public void configureContext() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+        context = SSLContext.getInstance("TLSv1.2");
+        context.init(null, new TrustManager[] {tm}, new SecureRandom());
+    }
 	
 	/**
 	 * Getter for the sockets IP
@@ -59,7 +152,7 @@ public class ProtocolSocket {
 		int headerRead = 0;
 		//Read until header is received
 		while(headerRead < headerSize.length){
-			int read = is.read(headerSize, headerRead, headerSize.length - headerRead);
+			int read = this.socket.getInputStream().read(headerSize, headerRead, headerSize.length - headerRead);
 			if(read == -1){
 				throw new IOException();
 			}
@@ -78,7 +171,7 @@ public class ProtocolSocket {
 		byte[] data = new byte[packetSize];
 		//Read until whole data has arrived
 		while(packetRead < packetSize){
-			int read = is.read(data, packetRead, packetSize - packetRead);
+			int read = this.socket.getInputStream().read(data, packetRead, packetSize - packetRead);
 			if(read == -1){
 				throw new IOException();
 			}
@@ -107,8 +200,8 @@ public class ProtocolSocket {
 		//If data is null only write the header
 		if(data == null){
 			byte[] header = Header.toBytes(0, type.ordinal());
-			this.os.write(header);
-			this.os.flush();
+			this.socket.getOutputStream().write(header);
+			this.socket.getOutputStream().flush();
 			return;
 		}
 		int totalSent = 0;
@@ -120,8 +213,8 @@ public class ProtocolSocket {
 			byte[] fullPacket = new byte[header.length + toSendSize];
 			System.arraycopy(header, 0, fullPacket, 0, header.length);
 			System.arraycopy(data, offset, fullPacket, header.length, toSendSize);
-			this.os.write(fullPacket);
-			this.os.flush();
+			this.socket.getOutputStream().write(fullPacket);
+			this.socket.getOutputStream().flush();
 			totalSent += toSendSize;
 		}
 	}
@@ -129,11 +222,11 @@ public class ProtocolSocket {
 	/**
 	 * Closes the socket
 	 */
-	public void close(){
-		try {
-			this.socket.close();
-		} catch (IOException e) {
-		    //
-		}
+	public void close() {
+	    try {
+            this.socket.close();
+        } catch (IOException e) {
+            //
+        }
 	}
 }

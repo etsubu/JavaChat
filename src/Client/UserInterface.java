@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 
 /**
@@ -46,8 +47,8 @@ public class UserInterface{
 		this.userListPanel = new UserListPanel();
 		this.chatTabPanel = new ChatTabPanel(this.userListPanel);
 		this.channnelPanel = new ChannelPanel();
-		this.channnelPanel.disable();
-		this.userListPanel.disable();
+		this.channnelPanel.deactive();
+		this.userListPanel.deactive();
 		this.frame.add(this.optionsPanel, BorderLayout.SOUTH);
 		this.frame.add(this.chatTabPanel, BorderLayout.CENTER);
 		this.frame.add(this.channnelPanel, BorderLayout.WEST);
@@ -67,7 +68,6 @@ public class UserInterface{
 		if(this.manager.connectToServer(ip)) {
 			this.optionsPanel.setConnected(true);
 			this.channnelPanel.enable(this.manager.getClientActions());
-			this.userListPanel.enable();
 			new Thread(this.manager).start();
 		} else {
 			this.optionsPanel.setConnected(false);
@@ -79,8 +79,8 @@ public class UserInterface{
 	 */
 	public void disconnectServer() {
 		this.manager.disconnect();
-		this.channnelPanel.disable();
-		this.userListPanel.disable();
+		this.channnelPanel.deactive();
+		this.userListPanel.deactive();
 		this.optionsPanel.setConnected(false);
 	}
 	
@@ -90,5 +90,6 @@ public class UserInterface{
 	 */
 	public void connectionLost(String message) {
 		this.optionsPanel.setConnected(false);
+		JOptionPane.showMessageDialog(null, message, "Connection lost", JOptionPane.INFORMATION_MESSAGE);
 	}
 }

@@ -65,10 +65,10 @@ public class ChannelPanel extends JPanel implements ActionListener{
 	
 	/**
 	 * Sets the status to enabled
-	 * @param clientActions The ClientActions this panel communicates about channels
+	 * @param actions The ClientActions this panel communicates about channels
 	 */
-	public void enable(ClientActions clientActions) {
-		this.clientActions = clientActions;
+	public void enable(ClientActions actions) {
+		this.clientActions = actions;
 		this.joinChannelButton.setEnabled(true);
 		this.createChannelButton.setEnabled(true);
 	}
@@ -76,7 +76,7 @@ public class ChannelPanel extends JPanel implements ActionListener{
 	/**
 	 * Sets the status to disabled
 	 */
-	public void disable() {
+	public void deactive() {
 		this.channelListModel.clear();
 		this.joinChannelButton.setEnabled(false);
 		this.createChannelButton.setEnabled(false);

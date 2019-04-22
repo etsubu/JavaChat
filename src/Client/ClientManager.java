@@ -1,6 +1,12 @@
 package Client;
 
-import java.net.Socket;
+import java.awt.Toolkit;
+import java.nio.charset.StandardCharsets;
+
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.swing.JOptionPane;
+
 import ProtocolSocket.Packet;
 import ProtocolSocket.ProtocolID;
 import ProtocolSocket.ProtocolSocket;
@@ -10,7 +16,8 @@ import ProtocolSocket.ProtocolSocket;
  * @author etsubu
  *
  */
-public class ClientManager implements Runnable{
+public class ClientManager implements Runnable {
+    private char[] password;
 	private ProtocolSocket protoSocket;
 	private boolean isConnected;
 	private UserInterface ui;
@@ -24,6 +31,7 @@ public class ClientManager implements Runnable{
 	 * @param channelManager The ChannelManager that contains all the joined channels
 	 */
 	public ClientManager(UserInterface ui, ChannelManager channelManager) {
+	    this.password = null;
 		this.channelManager = channelManager;
 		this.isConnected = false;
 		this.protoSocket = null;
@@ -49,13 +57,27 @@ public class ClientManager implements Runnable{
 			return false;
 		}
 		try {
-			Socket socket = new Socket(ip, 7777);
-			this.protoSocket = new ProtocolSocket(socket);
-			this.protoSocket.write(this.nickname.getBytes("UTF-8"), ProtocolID.CLIENT_NICKNAME);
-		} catch (Exception e) {
+		    while(password == null) {
+		        String str = JOptionPane.showInputDialog(null, "Input keystore password: ", "Keystore password", JOptionPane.QUESTION_MESSAGE);
+		        if(str != null)
+		            password = str.toCharArray();
+		    }
+			this.protoSocket = new ProtocolSocket(ip, 7777, true, password);
+			this.protoSocket.write(this.nickname.getBytes(StandardCharsets.UTF_8), ProtocolID.CLIENT_NICKNAME);
+		} catch(SSLHandshakeException e) {
+		    JOptionPane.showMessageDialog(null, "Server's certificate is not trusted!", "SSLHandshakeException", JOptionPane.ERROR_MESSAGE);
+		    return false;
+		}
+		catch(SSLPeerUnverifiedException e) {
+		    Toolkit.getDefaultToolkit().beep();
+		    JOptionPane.showMessageDialog(null, "Server certificate does not match the hostname!", "Invalid certificate", JOptionPane.ERROR_MESSAGE);
+		    return false;
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
 			return false;
 		}
-		this.actionHandler = new ClientActions(this, this.channelManager, this.protoSocket, this.ui);
+		this.actionHandler = new ClientActions(this, this.channelManager, this.protoSocket);
 		this.isConnected = true;
 		return true;
 	}
@@ -72,7 +94,8 @@ public class ClientManager implements Runnable{
 	 * Disconnects the client from the server
 	 */
 	public void disconnect() {
-		this.protoSocket.close();
+	    if(protoSocket != null)
+	        this.protoSocket.close();
 		this.channelManager.cleanup();
 		this.isConnected = false;
 		this.ui.connectionLost("");
